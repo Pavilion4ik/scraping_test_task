@@ -54,7 +54,7 @@ def get_veterinarians(url, num_pages: int) -> [Veterinarian]:
     veterinarians = get_single_page_veterinarian(first_page_soup)
     for page_num in range(2, num_pages + 1):
         driver.get(f"{url}&page={page_num}")
-        sleep(4)
+        sleep(2.5)
         page = driver.page_source
         soup = BeautifulSoup(page, "lxml")
         veterinarians.extend(get_single_page_veterinarian(soup))
