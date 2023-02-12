@@ -1,12 +1,11 @@
 import csv
 import sys
+import logging
 from typing import List
 from selenium import webdriver
 from time import sleep
 from dataclasses import dataclass, astuple, fields
 from bs4 import BeautifulSoup, Tag
-import logging
-
 from selenium.webdriver.chrome.options import Options
 
 
@@ -27,10 +26,7 @@ class VetParser:
     options = Options()
     options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
-
-    @staticmethod
-    def loging():
-        logging.basicConfig(
+    logging.basicConfig(
             level=logging.INFO,
             format="[%(levelname)8s]:  %(message)s",
             handlers=[
@@ -65,6 +61,7 @@ class VetParser:
         page = self.driver.page_source
         first_page_soup = BeautifulSoup(page, "lxml")
         veterinarians = self.get_single_page_veterinarian(first_page_soup)
+        logging.info("Parsing progress: 20%")
         for page_num in range(2, self.NUM_PAGES + 1):
             logging.info(f"Start parsing page #{page_num}")
             self.driver.get(f"{url}&page={page_num}")
@@ -72,13 +69,14 @@ class VetParser:
             page = self.driver.page_source
             soup = BeautifulSoup(page, "lxml")
             veterinarians.extend(self.get_single_page_veterinarian(soup))
+            logging.info(f"Parsing progress: {20 * page_num}%")
         return veterinarians
 
     def write_to_csv(self, veterinarians: [Veterinarian], file_name: str):
         with open(f"{file_name}.csv", "w", encoding="utf-8", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(self.VETERINARIAN_FIELDS)
-            writer.writerows([astuple(v) for v in veterinarians])
+            writer.writerows([astuple(veterinarian) for veterinarian in veterinarians])
 
     def close(self):
         self.driver.close()
