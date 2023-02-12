@@ -17,7 +17,7 @@ class Veterinarian:
     reception_time: str
     address: str
     rating: int
-    num_reviews: int
+    num_reviews: float
 
 
 class VetParser:
@@ -51,7 +51,7 @@ class VetParser:
             address=page_soup.select_one(".result-intro__address").text,
             rating=len(page_soup.select_one(".star-rating ").find_all("span")
                        ),
-            num_reviews=int(page_soup.select_one(".result-intro__rating__note").text.split()[0])
+            num_reviews=float(page_soup.select_one(".result-intro__rating__note").text.split()[0])
         )
 
     def get_single_page_veterinarian(self, page_soup: BeautifulSoup) -> List[Veterinarian]:
