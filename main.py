@@ -1,5 +1,4 @@
 import csv
-import os.path
 import sys
 from typing import List
 from selenium import webdriver
@@ -7,6 +6,8 @@ from time import sleep
 from dataclasses import dataclass, astuple, fields
 from bs4 import BeautifulSoup, Tag
 import logging
+
+from selenium.webdriver.chrome.options import Options
 
 
 @dataclass
@@ -23,7 +24,9 @@ class VetParser:
     URL = "https://www.zooplus.de/tierarzt/results?animal_99=true"
     NUM_PAGES = 5
     VETERINARIAN_FIELDS = [field.name for field in fields(Veterinarian)]
-    driver = webdriver.Chrome()
+    options = Options()
+    options.add_argument("--headless")
+    driver = webdriver.Chrome(options=options)
 
     @staticmethod
     def loging():
