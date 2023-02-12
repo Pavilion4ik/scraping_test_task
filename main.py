@@ -1,15 +1,14 @@
 import csv
+from typing import List
 from selenium import webdriver
 from time import sleep
-from selenium.webdriver.chrome.service import Service
 from dataclasses import dataclass, astuple, fields
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 URL = "https://www.zooplus.de/tierarzt/results?animal_99=true"
+NUM_PAGES = 5
 
-wd_path = "webdriver/chromedriver.exe"
-service = Service(executable_path=wd_path)
-driver = webdriver.Chrome(service=service)
+driver = webdriver.Chrome()
 
 
 @dataclass
@@ -25,7 +24,7 @@ class Veterinarian:
 VETERINARIAN_FIELDS = [field.name for field in fields(Veterinarian)]
 
 
-def parse_single_veterinarian(page_soup: BeautifulSoup) -> Veterinarian:
+def parse_single_veterinarian(page_soup: BeautifulSoup | Tag) -> Veterinarian:
     try:
         clinic = page_soup.select_one(".result-intro__subtitle").text
     except AttributeError:
@@ -41,24 +40,24 @@ def parse_single_veterinarian(page_soup: BeautifulSoup) -> Veterinarian:
     )
 
 
-def get_single_page_veterinarian(page_soup: BeautifulSoup):
+def get_single_page_veterinarian(page_soup: BeautifulSoup) -> List[Veterinarian]:
     veterinarians = page_soup.select(".result-intro__details")
     return [parse_single_veterinarian(soup) for soup in veterinarians]
 
 
-def get_veterinarians(url, num_pages: int) -> [Veterinarian]:
+def get_veterinarians(url) -> List[Veterinarian]:
     driver.get(url)
     sleep(3)
     page = driver.page_source
     first_page_soup = BeautifulSoup(page, "lxml")
     veterinarians = get_single_page_veterinarian(first_page_soup)
-    for page_num in range(2, num_pages + 1):
+    for page_num in range(2, NUM_PAGES + 1):
         driver.get(f"{url}&page={page_num}")
         sleep(2.5)
         page = driver.page_source
         soup = BeautifulSoup(page, "lxml")
         veterinarians.extend(get_single_page_veterinarian(soup))
-    return list(veterinarians)
+    return veterinarians
 
 
 def write_to_csv(veterinarians: [Veterinarian], name: str):
@@ -69,13 +68,11 @@ def write_to_csv(veterinarians: [Veterinarian], name: str):
 
 
 def main():
-    test = get_veterinarians(URL, 5)
-    write_to_csv(test, "test")
-    return test
+    test = get_veterinarians(URL)
+    write_to_csv(test, "veterinarians")
 
 
 if __name__ == "__main__":
     main()
-
-driver.close()
-driver.quit()
+    driver.close()
+    driver.quit()
