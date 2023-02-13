@@ -30,9 +30,8 @@ class VetParser:
     logging.basicConfig(
         level=logging.INFO,
         format="[%(levelname)8s]:  %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
+        handlers=[logging.StreamHandler(sys.stdout),
+                  logging.FileHandler("parser.log")],
     )
 
     @staticmethod
@@ -46,14 +45,15 @@ class VetParser:
             clinic=clinic,
             reception_time=page_soup.select_one(".daily-hours").text,
             address=page_soup.select_one(".result-intro__address").text,
-            rating=len(page_soup.select_one(".star-rating ").find_all("span")
-                       ),
-            num_reviews=float(page_soup.select_one(
-                ".result-intro__rating__note").text.split()[0]
-                              )
+            rating=len(page_soup.select_one(".star-rating ").find_all("span")),
+            num_reviews=float(
+                page_soup.select_one(".result-intro__rating__note").text.split()[0]
+            ),
         )
 
-    def get_single_page_veterinarian(self, page_soup: BeautifulSoup) -> List[Veterinarian]:
+    def get_single_page_veterinarian(
+        self, page_soup: BeautifulSoup
+    ) -> List[Veterinarian]:
         veterinarians = page_soup.select(".result-intro__details")
         return [self.parse_single_veterinarian(soup) for soup in veterinarians]
 
